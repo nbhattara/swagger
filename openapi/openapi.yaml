@@ -1,0 +1,4395 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "E-Learning Platform API",
+    "version": "1.0.0",
+    "description": "A comprehensive e-learning platform backend with course management, enrollment, assessment, and payment features. This API supports multiple user roles including students, instructors, and administrators.",
+    "contact": {
+      "name": "API Support",
+      "email": "support@elearning.com",
+      "url": "https://elearning.com/support"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "termsOfService": "https://elearning.com/terms"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://api.elearning.com",
+      "description": "Production server"
+    },
+    {
+      "url": "https://staging-api.elearning.com",
+      "description": "Staging server"
+    }
+  ],
+  "externalDocs": {
+    "description": "Find out more about our API documentation",
+    "url": "https://elearning.com/docs"
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from /api/v1/auth/login. Include the token in the Authorization header as \"Bearer {token}\"."
+      }
+    },
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Operation successful"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "An error occurred"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "example": "Detailed error message"
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "example": 1,
+            "description": "Page number (starts from 1)"
+          },
+          "limit": {
+            "type": "integer",
+            "example": 10,
+            "description": "Items per page"
+          },
+          "total": {
+            "type": "integer",
+            "example": 100,
+            "description": "Total number of items"
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 10,
+            "description": "Total number of pages"
+          }
+        }
+      },
+      "PaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "instructor",
+              "admin"
+            ],
+            "example": "student"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "free",
+              "premium"
+            ],
+            "example": "free"
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/avatar.jpg"
+          },
+          "isApproved": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "example": {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john@example.com",
+          "role": "student",
+          "tier": "free",
+          "avatar": null,
+          "isApproved": true,
+          "approvedAt": "2024-01-01T00:00:00.000Z",
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z"
+        }
+      },
+      "Course": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Introduction to Web Development",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn the basics of web development"
+          },
+          "category": {
+            "type": "string",
+            "example": "Programming",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "instructorId": {
+            "type": "integer",
+            "example": 1
+          },
+          "thumbnail": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/course-thumb.jpg"
+          },
+          "price": {
+            "type": "number",
+            "format": "decimal",
+            "example": 99.99,
+            "minimum": 0
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "example": {
+          "id": 1,
+          "title": "Introduction to Web Development",
+          "description": "Learn the basics of web development",
+          "category": "Programming",
+          "instructorId": 1,
+          "thumbnail": "https://example.com/course-thumb.jpg",
+          "price": 99.99,
+          "isPublished": false,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z"
+        }
+      },
+      "SubCourse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "courseId": {
+            "type": "integer",
+            "example": 1
+          },
+          "instructorId": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "HTML Basics",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "example": "Learn HTML fundamentals"
+          },
+          "thumbnail": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/subcourse-thumb.jpg"
+          },
+          "orderIndex": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 0
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "Lesson": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "courseId": {
+            "type": "integer",
+            "example": 1
+          },
+          "subCourseId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Introduction to HTML",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "content": {
+            "type": "string",
+            "example": "HTML is the foundation of web development"
+          },
+          "videoUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/video.mp4"
+          },
+          "orderIndex": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "Quiz": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "courseId": {
+            "type": "integer",
+            "example": 1
+          },
+          "subCourseId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "lessonId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "HTML Quiz",
+            "minLength": 3,
+            "maxLength": 200
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "correctOptionIndex": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "Enrollment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "studentId": {
+            "type": "integer",
+            "example": 1
+          },
+          "courseId": {
+            "type": "integer",
+            "example": 1
+          },
+          "subCourseId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "completedLessons": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "completionPercentage": {
+            "type": "number",
+            "format": "decimal",
+            "example": 75.5,
+            "minimum": 0,
+            "maximum": 100
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed",
+              "dropped"
+            ],
+            "example": "active"
+          },
+          "enrolledAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "userId": {
+            "type": "integer",
+            "example": 1
+          },
+          "courseId": {
+            "type": "integer",
+            "example": 1
+          },
+          "amount": {
+            "type": "number",
+            "format": "decimal",
+            "example": 99.99,
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "example": "pending"
+          },
+          "proofImage": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/proof.jpg"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Invalid proof"
+          },
+          "approvedBy": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "PublicUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "instructor",
+              "admin"
+            ],
+            "example": "student"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "free",
+              "premium"
+            ],
+            "example": "free"
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/avatar.jpg"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "QuizQuestion": {
+        "type": "object",
+        "required": [
+          "question",
+          "options",
+          "correctOptionIndex"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "example": "What does HTML stand for?"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Hyper Text Markup Language",
+              "High Text Machine Language"
+            ]
+          },
+          "correctOptionIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 0
+          }
+        }
+      },
+      "QuizSubmissionRequest": {
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "questionIndex",
+                "selectedOptionIndex"
+              ],
+              "properties": {
+                "questionIndex": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "example": 0
+                },
+                "selectedOptionIndex": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "example": 0
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "answers": [
+            {
+              "questionIndex": 0,
+              "selectedOptionIndex": 0
+            },
+            {
+              "questionIndex": 1,
+              "selectedOptionIndex": 1
+            }
+          ]
+        }
+      },
+      "QuizSubmissionResult": {
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 80,
+            "description": "Percentage score, rounded"
+          },
+          "passed": {
+            "type": "boolean",
+            "example": true,
+            "description": "True when the score is at least 70"
+          },
+          "totalQuestions": {
+            "type": "integer",
+            "example": 5
+          },
+          "correctAnswers": {
+            "type": "integer",
+            "example": 4
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 100,
+            "example": "password123"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "instructor",
+              "admin"
+            ],
+            "example": "student"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "free",
+              "premium"
+            ],
+            "example": "free"
+          }
+        },
+        "example": {
+          "name": "John Doe",
+          "email": "john@example.com",
+          "password": "password123",
+          "role": "student",
+          "tier": "free"
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        "example": {
+          "email": "john@example.com",
+          "password": "password123"
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "User registered successfully"
+          },
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "example": {
+          "success": true,
+          "message": "User registered successfully",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "user": {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "role": "student",
+            "tier": "free",
+            "isApproved": true,
+            "createdAt": "2024-01-01T00:00:00.000Z",
+            "updatedAt": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "AdminDashboard": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "dashboard": {
+            "type": "object",
+            "properties": {
+              "users": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 1000
+                  },
+                  "teachers": {
+                    "type": "integer",
+                    "example": 50
+                  },
+                  "approvedTeachers": {
+                    "type": "integer",
+                    "example": 45
+                  },
+                  "pendingTeachers": {
+                    "type": "integer",
+                    "example": 5
+                  },
+                  "subscribers": {
+                    "type": "integer",
+                    "example": 200
+                  },
+                  "recent": {
+                    "type": "integer",
+                    "example": 50
+                  }
+                }
+              },
+              "courses": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 100
+                  },
+                  "published": {
+                    "type": "integer",
+                    "example": 80
+                  },
+                  "latest": {
+                    "type": "integer",
+                    "example": 10
+                  },
+                  "enrollments": {
+                    "type": "integer",
+                    "example": 500
+                  }
+                }
+              },
+              "exams": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 200
+                  },
+                  "submissions": {
+                    "type": "integer",
+                    "example": 1500
+                  },
+                  "averageScore": {
+                    "type": "number",
+                    "example": 85.5
+                  }
+                }
+              },
+              "payments": {
+                "type": "object",
+                "properties": {
+                  "pending": {
+                    "type": "integer",
+                    "example": 10
+                  },
+                  "approved": {
+                    "type": "integer",
+                    "example": 90
+                  },
+                  "rejected": {
+                    "type": "integer",
+                    "example": 5
+                  },
+                  "total": {
+                    "type": "number",
+                    "example": 8999.99
+                  }
+                }
+              },
+              "billing": {
+                "type": "object",
+                "properties": {
+                  "invoices": {
+                    "type": "integer",
+                    "example": 100
+                  },
+                  "paid": {
+                    "type": "integer",
+                    "example": 85
+                  }
+                }
+              },
+              "certificates": {
+                "type": "object",
+                "properties": {
+                  "issued": {
+                    "type": "integer",
+                    "example": 75
+                  },
+                  "valid": {
+                    "type": "integer",
+                    "example": 70
+                  },
+                  "revoked": {
+                    "type": "integer",
+                    "example": 5
+                  }
+                }
+              },
+              "revenue": {
+                "type": "object",
+                "properties": {
+                  "monthly": {
+                    "type": "number",
+                    "example": 5000
+                  },
+                  "total": {
+                    "type": "number",
+                    "example": 50000
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "StudentDashboard": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "dashboard": {
+            "type": "object",
+            "properties": {
+              "enrollments": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 5
+                  },
+                  "active": {
+                    "type": "integer",
+                    "example": 3
+                  },
+                  "completed": {
+                    "type": "integer",
+                    "example": 2
+                  },
+                  "avgProgress": {
+                    "type": "integer",
+                    "example": 75
+                  }
+                }
+              },
+              "certificates": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 2
+                  }
+                }
+              },
+              "payments": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 3
+                  },
+                  "pending": {
+                    "type": "integer",
+                    "example": 0
+                  },
+                  "approved": {
+                    "type": "integer",
+                    "example": 3
+                  }
+                }
+              },
+              "recentCourses": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TeacherDashboard": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "dashboard": {
+            "type": "object",
+            "properties": {
+              "courses": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 10
+                  },
+                  "published": {
+                    "type": "integer",
+                    "example": 8
+                  },
+                  "draft": {
+                    "type": "integer",
+                    "example": 2
+                  }
+                }
+              },
+              "enrollments": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 100
+                  },
+                  "active": {
+                    "type": "integer",
+                    "example": 80
+                  },
+                  "completed": {
+                    "type": "integer",
+                    "example": 20
+                  },
+                  "avgProgress": {
+                    "type": "integer",
+                    "example": 70
+                  }
+                }
+              },
+              "quizzes": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "example": 25
+                  }
+                }
+              },
+              "recentEnrollments": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "myCourses": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User registration and login endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Courses",
+      "description": "Course management endpoints"
+    },
+    {
+      "name": "SubCourses",
+      "description": "Sub-course management endpoints"
+    },
+    {
+      "name": "Lessons",
+      "description": "Lesson management endpoints"
+    },
+    {
+      "name": "Quizzes",
+      "description": "Quiz and assessment endpoints"
+    },
+    {
+      "name": "Enrollments",
+      "description": "Course enrollment endpoints"
+    },
+    {
+      "name": "Payments",
+      "description": "Payment processing endpoints"
+    },
+    {
+      "name": "Invoices",
+      "description": "Invoice management endpoints"
+    },
+    {
+      "name": "Certificates",
+      "description": "Certificate generation endpoints"
+    },
+    {
+      "name": "Notifications",
+      "description": "Notification management endpoints"
+    },
+    {
+      "name": "Discounts",
+      "description": "Discount code management endpoints"
+    },
+    {
+      "name": "Admin",
+      "description": "Admin dashboard and management endpoints"
+    },
+    {
+      "name": "Student",
+      "description": "Student dashboard endpoints"
+    },
+    {
+      "name": "Teacher",
+      "description": "Teacher dashboard endpoints"
+    }
+  ],
+  "paths": {
+    "/api/v1/users": {
+      "get": {
+        "summary": "Get all users",
+        "description": "Returns the public profile of every user. Restricted to administrators.",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicUser"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "description": "Returns the public profile of a single user. Requires authentication.",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicUser"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a user",
+        "description": "Permanently deletes a user. Restricted to administrators.",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/profile": {
+      "put": {
+        "summary": "Update current user profile",
+        "description": "Updates the authenticated user's name, avatar and/or password. Submitting a password re-hashes it before storage.",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100
+                  },
+                  "avatar": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/PublicUser"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sub-courses/course/{courseId}": {
+      "get": {
+        "summary": "Get sub-courses by course ID",
+        "tags": [
+          "SubCourses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "courseId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Course ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sub-courses retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubCourse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sub-courses/{id}": {
+      "get": {
+        "summary": "Get sub-course by ID",
+        "tags": [
+          "SubCourses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Sub-course ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sub-course retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubCourse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a sub-course",
+        "tags": [
+          "SubCourses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "order_index": {
+                    "type": "integer"
+                  },
+                  "is_published": {
+                    "type": "boolean"
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sub-course updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a sub-course",
+        "tags": [
+          "SubCourses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sub-course deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/sub-courses": {
+      "post": {
+        "summary": "Create a new sub-course",
+        "tags": [
+          "SubCourses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "course_id",
+                  "title",
+                  "description"
+                ],
+                "properties": {
+                  "course_id": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "order_index": {
+                    "type": "integer"
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sub-course created successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/course/{courseId}": {
+      "get": {
+        "summary": "Get quizzes for a course",
+        "description": "Returns every quiz attached to a course, each including the id and title of its linked lesson when present. This endpoint is public.",
+        "tags": [
+          "Quizzes"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "courseId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Course ID"
+          },
+          {
+            "in": "query",
+            "name": "subCourseId",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Optional sub-course ID to narrow the results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of quizzes retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Quiz"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes": {
+      "post": {
+        "summary": "Create a quiz",
+        "description": "Creates a quiz for a course, optionally attached to a sub-course and/or a lesson. Only the owning instructor or an admin may create it.",
+        "tags": [
+          "Quizzes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "course_id",
+                  "title",
+                  "questions"
+                ],
+                "properties": {
+                  "course_id": {
+                    "type": "integer"
+                  },
+                  "sub_course_id": {
+                    "type": "integer"
+                  },
+                  "lesson_id": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "questions": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/components/schemas/QuizQuestion"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quiz created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "quiz": {
+                      "$ref": "#/components/schemas/Quiz"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid sub-course or lesson for this course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to create a quiz for this course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}/submit": {
+      "post": {
+        "summary": "Submit quiz answers",
+        "description": "Grades a student's answers server-side and returns the score. A quiz is passed when the score is at least 70 percent.",
+        "tags": [
+          "Quizzes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Quiz ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizSubmissionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quiz graded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizSubmissionResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quiz not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}": {
+      "put": {
+        "summary": "Update a quiz",
+        "description": "Updates the title and/or questions of a quiz. Only the owning instructor or an admin may update it.",
+        "tags": [
+          "Quizzes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Quiz ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "questions": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/components/schemas/QuizQuestion"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quiz updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "quiz": {
+                      "$ref": "#/components/schemas/Quiz"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to update this quiz",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quiz not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a quiz",
+        "description": "Deletes a quiz. Only the owning instructor or an admin may delete it.",
+        "tags": [
+          "Quizzes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Quiz ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quiz deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to delete this quiz",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quiz not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments": {
+      "post": {
+        "summary": "Create a new payment",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "courseId"
+                ],
+                "properties": {
+                  "courseId": {
+                    "type": "integer"
+                  },
+                  "amount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment created successfully"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all payments",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payments retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/{paymentId}/upload-proof": {
+      "post": {
+        "summary": "Upload payment proof image",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paymentId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proof uploaded successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/{paymentId}/approve": {
+      "put": {
+        "summary": "Approve a payment",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paymentId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment approved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/{paymentId}/reject": {
+      "put": {
+        "summary": "Reject a payment",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paymentId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment rejected successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/check/user/{userId}/course/{courseId}": {
+      "get": {
+        "summary": "Check if user has valid payment for course",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "courseId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment check completed"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/monthly-revenue": {
+      "get": {
+        "summary": "Get monthly revenue (admin only)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revenue data retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "post": {
+        "summary": "Create a notification (admin only)",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "title",
+                  "message"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "info",
+                      "success",
+                      "warning",
+                      "error"
+                    ]
+                  },
+                  "link": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Notification created successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/user/{userId}": {
+      "get": {
+        "summary": "Get notifications for a user",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/unread": {
+      "get": {
+        "summary": "Get unread notifications for current user",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unread notifications retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{notificationId}/mark-read": {
+      "put": {
+        "summary": "Mark notification as read",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notificationId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification marked as read"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/mark-all-read": {
+      "put": {
+        "summary": "Mark all notifications as read",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All notifications marked as read"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "summary": "Get unread notification count",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unread count retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/welcome/{userId}": {
+      "post": {
+        "summary": "Send welcome notification (admin only)",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Welcome notification sent successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/lessons/course/{courseId}": {
+      "get": {
+        "summary": "Get lessons for a course",
+        "description": "Returns the lessons of a course ordered by order index. Students must be enrolled in the course; instructors and admins can read the full list.",
+        "tags": [
+          "Lessons"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "courseId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Course ID"
+          },
+          {
+            "in": "query",
+            "name": "subCourseId",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Optional sub-course ID to narrow the results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of lessons retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Lesson"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - student is not enrolled in this course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lessons": {
+      "post": {
+        "summary": "Create a lesson",
+        "description": "Creates a lesson inside a course or sub-course. Only the owning instructor or an admin may add lessons.",
+        "tags": [
+          "Lessons"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "course_id",
+                  "title",
+                  "content",
+                  "order_index"
+                ],
+                "properties": {
+                  "course_id": {
+                    "type": "integer"
+                  },
+                  "sub_course_id": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "order_index": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lesson created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "lesson": {
+                      "$ref": "#/components/schemas/Lesson"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid sub-course for this course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to add lessons to this course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lessons/{id}": {
+      "put": {
+        "summary": "Update a lesson",
+        "description": "Updates the mutable fields of a lesson. Only the owning instructor or an admin may update it.",
+        "tags": [
+          "Lessons"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Lesson ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "order_index": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lesson updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "lesson": {
+                      "$ref": "#/components/schemas/Lesson"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to update this lesson",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lesson not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a lesson",
+        "description": "Deletes a lesson. Only the owning instructor or an admin may delete it.",
+        "tags": [
+          "Lessons"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Lesson ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lesson deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to delete this lesson",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lesson not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invoices": {
+      "post": {
+        "summary": "Create a new invoice",
+        "tags": [
+          "Invoices"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "courseId",
+                  "amount"
+                ],
+                "properties": {
+                  "paymentId": {
+                    "type": "integer"
+                  },
+                  "courseId": {
+                    "type": "integer"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "discountAmount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invoice created successfully"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all invoices",
+        "tags": [
+          "Invoices"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoices retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/invoices/{id}": {
+      "get": {
+        "summary": "Get invoice by ID",
+        "tags": [
+          "Invoices"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/invoices/{id}/issue": {
+      "put": {
+        "summary": "Issue an invoice",
+        "tags": [
+          "Invoices"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice issued successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/invoices/{id}/mark-paid": {
+      "put": {
+        "summary": "Mark invoice as paid (admin only)",
+        "tags": [
+          "Invoices"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice marked as paid successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/invoices/{id}/download": {
+      "get": {
+        "summary": "Download invoice PDF",
+        "tags": [
+          "Invoices"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice PDF downloaded"
+          }
+        }
+      }
+    },
+    "/api/v1/enrollments/enroll": {
+      "post": {
+        "summary": "Enroll in a course or sub-course",
+        "tags": [
+          "Enrollments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "courseId"
+                ],
+                "properties": {
+                  "courseId": {
+                    "type": "integer"
+                  },
+                  "subCourseId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enrolled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "enrollment": {
+                      "$ref": "#/components/schemas/Enrollment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - tier limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enrollments/my-enrollments": {
+      "get": {
+        "summary": "Get current student's enrollments",
+        "tags": [
+          "Enrollments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of enrollments retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Enrollment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enrollments/progress": {
+      "put": {
+        "summary": "Update lesson progress",
+        "tags": [
+          "Enrollments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "enrollmentId",
+                  "lessonId"
+                ],
+                "properties": {
+                  "enrollmentId": {
+                    "type": "integer"
+                  },
+                  "lessonId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progress updated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/enrollments/{id}": {
+      "get": {
+        "summary": "Get enrollment by ID",
+        "tags": [
+          "Enrollments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enrollment retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Enrollment"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete enrollment",
+        "tags": [
+          "Enrollments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enrollment deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/discounts": {
+      "post": {
+        "summary": "Create a discount (admin only)",
+        "tags": [
+          "Discounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "name",
+                  "type",
+                  "value"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "percentage",
+                      "fixed"
+                    ]
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "maxDiscountAmount": {
+                    "type": "number"
+                  },
+                  "minPurchaseAmount": {
+                    "type": "number"
+                  },
+                  "maxUses": {
+                    "type": "integer"
+                  },
+                  "validFrom": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "validUntil": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "applicableCourses": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Discount created successfully"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all discounts",
+        "tags": [
+          "Discounts"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "isActive",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discounts retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/discounts/{id}": {
+      "get": {
+        "summary": "Get discount by ID",
+        "tags": [
+          "Discounts"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discount retrieved successfully"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a discount (admin only)",
+        "tags": [
+          "Discounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "is_active": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Discount updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a discount (admin only)",
+        "tags": [
+          "Discounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discount deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/discounts/validate": {
+      "post": {
+        "summary": "Validate a discount code",
+        "tags": [
+          "Discounts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "courseId",
+                  "amount"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "courseId": {
+                    "type": "integer"
+                  },
+                  "amount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Discount validated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/dashboard": {
+      "get": {
+        "summary": "Get admin dashboard statistics",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDashboard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "summary": "Get all users with filters",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "student",
+                "instructor",
+                "admin"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "isApproved",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{userId}": {
+      "put": {
+        "summary": "Update user",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "student",
+                      "instructor",
+                      "admin"
+                    ]
+                  },
+                  "tier": {
+                    "type": "string",
+                    "enum": [
+                      "free",
+                      "premium"
+                    ]
+                  },
+                  "isApproved": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/pending-teachers": {
+      "get": {
+        "summary": "Get pending teacher approvals",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pending teachers retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "pendingTeachers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/approve-teacher/{teacherId}": {
+      "put": {
+        "summary": "Approve teacher",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "teacherId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Teacher approved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "teacher": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/reject-teacher/{teacherId}": {
+      "put": {
+        "summary": "Reject teacher",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "teacherId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Teacher rejected successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/student/dashboard": {
+      "get": {
+        "summary": "Get student dashboard statistics",
+        "tags": [
+          "Student"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student dashboard retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentDashboard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/teacher/dashboard": {
+      "get": {
+        "summary": "Get teacher dashboard statistics",
+        "tags": [
+          "Teacher"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Teacher dashboard retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherDashboard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses": {
+      "get": {
+        "summary": "Get all courses",
+        "tags": [
+          "Courses"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of courses retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new course",
+        "tags": [
+          "Courses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "description",
+                  "category"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "is_published": {
+                    "type": "boolean"
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Course created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "course": {
+                      "$ref": "#/components/schemas/Course"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions or tier limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/{id}": {
+      "get": {
+        "summary": "Get course by ID",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Course ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Course retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a course",
+        "tags": [
+          "Courses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Course ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "is_published": {
+                    "type": "boolean"
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Course updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "course": {
+                      "$ref": "#/components/schemas/Course"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to update this course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a course",
+        "tags": [
+          "Courses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Course ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Course deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to delete this course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/certificates/generate": {
+      "post": {
+        "summary": "Generate a certificate (admin only)",
+        "tags": [
+          "Certificates"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "courseId"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "integer"
+                  },
+                  "courseId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Certificate generated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/certificates": {
+      "get": {
+        "summary": "Get all certificates",
+        "tags": [
+          "Certificates"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certificates retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/certificates/{id}": {
+      "get": {
+        "summary": "Get certificate by ID",
+        "tags": [
+          "Certificates"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certificate retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/certificates/{id}/download": {
+      "get": {
+        "summary": "Download certificate PDF",
+        "tags": [
+          "Certificates"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certificate PDF downloaded"
+          }
+        }
+      }
+    },
+    "/api/v1/certificates/verify/{verificationCode}": {
+      "get": {
+        "summary": "Verify a certificate (public endpoint)",
+        "tags": [
+          "Certificates"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "verificationCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certificate verified successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/certificates/{id}/revoke": {
+      "put": {
+        "summary": "Revoke a certificate (admin only)",
+        "tags": [
+          "Certificates"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Certificate revoked successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "description": "Register a new user with the specified role. If registering as an instructor, the account will require admin approval before accessing instructor features.",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              },
+              "example": {
+                "name": "John Doe",
+                "email": "john@example.com",
+                "password": "password123",
+                "role": "student",
+                "tier": "free"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "User registered successfully",
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "user": {
+                    "id": 1,
+                    "name": "John Doe",
+                    "email": "john@example.com",
+                    "role": "student",
+                    "tier": "free",
+                    "isApproved": true,
+                    "createdAt": "2024-01-01T00:00:00.000Z",
+                    "updatedAt": "2024-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or user already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "User already exists"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Login user",
+        "description": "Authenticate a user with email and password. Returns a JWT token that must be included in the Authorization header for subsequent requests.",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "email": "john@example.com",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Login successful",
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "user": {
+                    "id": 1,
+                    "name": "John Doe",
+                    "email": "john@example.com",
+                    "role": "student",
+                    "tier": "free",
+                    "isApproved": true,
+                    "createdAt": "2024-01-01T00:00:00.000Z",
+                    "updatedAt": "2024-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Invalid credentials"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "Get current user profile",
+        "description": "Retrieve the profile of the currently authenticated user based on the JWT token.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                },
+                "example": {
+                  "id": 1,
+                  "name": "John Doe",
+                  "email": "john@example.com",
+                  "role": "student",
+                  "tier": "free",
+                  "isApproved": true,
+                  "createdAt": "2024-01-01T00:00:00.000Z",
+                  "updatedAt": "2024-01-01T00:00:00.000Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Invalid or expired token"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "User not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/upgrade-tier": {
+      "put": {
+        "summary": "Upgrade/downgrade user tier",
+        "description": "Change the user's subscription tier between free and premium.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tier"
+                ],
+                "properties": {
+                  "tier": {
+                    "type": "string",
+                    "enum": [
+                      "free",
+                      "premium"
+                    ],
+                    "example": "premium"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tier updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Tier updated successfully",
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "user": {
+                    "id": 1,
+                    "name": "John Doe",
+                    "email": "john@example.com",
+                    "role": "student",
+                    "tier": "premium",
+                    "isApproved": true,
+                    "createdAt": "2024-01-01T00:00:00.000Z",
+                    "updatedAt": "2024-01-01T00:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid tier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Invalid tier"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
