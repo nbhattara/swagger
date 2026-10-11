@@ -39,10 +39,92 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "JWT token obtained from /api/v1/auth/login. Include the token in the Authorization header as \"Bearer {token}\"."
+        "description": "JWT token obtained from /api/v1/auth/login. Include the token in the Authorization header as \"Bearer [token]\"."
       }
     },
     "schemas": {
+      "PublicQuiz": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "courseId": {
+            "type": "integer",
+            "example": 1
+          },
+          "subCourseId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "lessonId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "HTML Quiz"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "question",
+                "options"
+              ],
+              "properties": {
+                "question": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QuizAttempt": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "SuccessResponse": {
         "type": "object",
         "properties": {
@@ -176,6 +258,10 @@
             ],
             "example": "free"
           },
+          "emailVerified": {
+            "type": "boolean",
+            "example": true
+          },
           "avatar": {
             "type": "string",
             "nullable": true,
@@ -209,6 +295,7 @@
           "email": "john@example.com",
           "role": "student",
           "tier": "free",
+          "emailVerified": true,
           "avatar": null,
           "isApproved": true,
           "approvedAt": "2024-01-01T00:00:00.000Z",
@@ -705,6 +792,14 @@
           "correctAnswers": {
             "type": "integer",
             "example": 4
+          },
+          "attemptId": {
+            "type": "integer",
+            "example": 1
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -729,34 +824,24 @@
           },
           "password": {
             "type": "string",
-            "minLength": 6,
+            "minLength": 12,
             "maxLength": 100,
-            "example": "password123"
+            "example": "correct horse battery staple"
           },
           "role": {
             "type": "string",
             "enum": [
               "student",
-              "instructor",
-              "admin"
+              "instructor"
             ],
             "example": "student"
-          },
-          "tier": {
-            "type": "string",
-            "enum": [
-              "free",
-              "premium"
-            ],
-            "example": "free"
           }
         },
         "example": {
           "name": "John Doe",
           "email": "john@example.com",
-          "password": "password123",
-          "role": "student",
-          "tier": "free"
+          "password": "correct horse battery staple",
+          "role": "student"
         }
       },
       "LoginRequest": {
@@ -773,12 +858,13 @@
           },
           "password": {
             "type": "string",
-            "example": "password123"
+            "minLength": 12,
+            "example": "************"
           }
         },
         "example": {
           "email": "john@example.com",
-          "password": "password123"
+          "password": "correct horse battery staple"
         }
       },
       "AuthResponse": {
@@ -794,7 +880,7 @@
           },
           "token": {
             "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            "example": "[redacted]"
           },
           "user": {
             "$ref": "#/components/schemas/User"
@@ -803,7 +889,7 @@
         "example": {
           "success": true,
           "message": "User registered successfully",
-          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "token": "[redacted]",
           "user": {
             "id": 1,
             "name": "John Doe",
@@ -813,6 +899,22 @@
             "isApproved": true,
             "createdAt": "2024-01-01T00:00:00.000Z",
             "updatedAt": "2024-01-01T00:00:00.000Z"
+          }
+        }
+      },
+      "RegistrationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Registration successful. Check your email to verify your account."
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
           }
         }
       },
@@ -1213,7 +1315,7 @@
     "/api/v1/users/{id}": {
       "get": {
         "summary": "Get user by ID",
-        "description": "Returns the public profile of a single user. Requires authentication.",
+        "description": "Users may view their own profile; administrators may view any user's profile.",
         "tags": [
           "Users"
         ],
@@ -1310,7 +1412,7 @@
     "/api/v1/users/profile": {
       "put": {
         "summary": "Update current user profile",
-        "description": "Updates the authenticated user's name, avatar and/or password. Submitting a password re-hashes it before storage.",
+        "description": "Updates the authenticated user's name, avatar and/or password. Changing a password requires the current password, a one-time email OTP authorization token, and invalidates existing JWTs.",
         "tags": [
           "Users"
         ],
@@ -1337,7 +1439,14 @@
                   },
                   "password": {
                     "type": "string",
-                    "minLength": 6
+                    "minLength": 12
+                  },
+                  "currentPassword": {
+                    "type": "string"
+                  },
+                  "otpAuthorization": {
+                    "type": "string",
+                    "description": "One-time token returned by POST /api/v1/auth/otp/verify for purpose password_change"
                   }
                 }
               }
@@ -1369,9 +1478,11 @@
     "/api/v1/sub-courses/course/{courseId}": {
       "get": {
         "summary": "Get sub-courses by course ID",
+        "description": "Returns published sub-courses as an array with pagination metadata in response headers (default 20, maximum 100).",
         "tags": [
           "SubCourses"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "path",
@@ -1381,6 +1492,23 @@
               "type": "integer"
             },
             "description": "Course ID"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
           }
         ],
         "responses": {
@@ -1406,6 +1534,7 @@
         "tags": [
           "SubCourses"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "path",
@@ -1565,7 +1694,7 @@
     "/api/v1/quizzes/course/{courseId}": {
       "get": {
         "summary": "Get quizzes for a course",
-        "description": "Returns every quiz attached to a course, each including the id and title of its linked lesson when present. This endpoint is public.",
+        "description": "Returns published-course quizzes without correct-answer keys. Students must be enrolled to submit answers.",
         "tags": [
           "Quizzes"
         ],
@@ -1598,7 +1727,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Quiz"
+                    "$ref": "#/components/schemas/PublicQuiz"
                   }
                 }
               }
@@ -1760,6 +1889,38 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}/attempts/me": {
+      "get": {
+        "summary": "Get the current student's quiz attempt history",
+        "description": "Lists the signed-in student's attempts for a quiz they are enrolled to take.",
+        "tags": [
+          "Quizzes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attempt history retrieved"
+          },
+          "403": {
+            "description": "Enrollment is required"
           }
         }
       }
@@ -1935,8 +2096,8 @@
                   "courseId": {
                     "type": "integer"
                   },
-                  "amount": {
-                    "type": "number"
+                  "discountCode": {
+                    "type": "string"
                   }
                 }
               }
@@ -2686,21 +2847,11 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "courseId",
-                  "amount"
+                  "paymentId"
                 ],
                 "properties": {
                   "paymentId": {
                     "type": "integer"
-                  },
-                  "courseId": {
-                    "type": "integer"
-                  },
-                  "amount": {
-                    "type": "number"
-                  },
-                  "discountAmount": {
-                    "type": "number"
                   }
                 }
               }
@@ -2894,7 +3045,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - tier limit reached",
+            "description": "Forbidden - tier limit reached or approved payment required for a paid course",
             "content": {
               "application/json": {
                 "schema": {
@@ -3117,6 +3268,7 @@
         "tags": [
           "Discounts"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "query",
@@ -3139,6 +3291,7 @@
         "tags": [
           "Discounts"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "path",
@@ -3238,6 +3391,7 @@
         "tags": [
           "Discounts"
         ],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -3246,8 +3400,7 @@
                 "type": "object",
                 "required": [
                   "code",
-                  "courseId",
-                  "amount"
+                  "courseId"
                 ],
                 "properties": {
                   "code": {
@@ -3255,9 +3408,6 @@
                   },
                   "courseId": {
                     "type": "integer"
-                  },
-                  "amount": {
-                    "type": "number"
                   }
                 }
               }
@@ -3411,6 +3561,9 @@
                   },
                   "isApproved": {
                     "type": "boolean"
+                  },
+                  "isActive": {
+                    "type": "boolean"
                   }
                 }
               }
@@ -3446,6 +3599,27 @@
         "responses": {
           "200": {
             "description": "User deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/purge-deactivated": {
+      "post": {
+        "summary": "Permanently purge accounts deactivated for at least 30 days",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expired deactivated accounts purged"
+          },
+          "403": {
+            "description": "Admin access required"
           }
         }
       }
@@ -3643,8 +3817,44 @@
     "/api/v1/courses": {
       "get": {
         "summary": "Get all courses",
+        "description": "Returns published courses as an array. Pagination metadata is returned in X-Total-Count, X-Page, X-Page-Size, and X-Total-Pages headers. Defaults to 20 items and allows at most 100.",
         "tags": [
           "Courses"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -3747,6 +3957,7 @@
         "tags": [
           "Courses"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "path",
@@ -3915,6 +4126,64 @@
         }
       }
     },
+    "/api/v1/contact": {
+      "post": {
+        "summary": "Send a website contact message",
+        "tags": [
+          "Contact"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "subject",
+                  "message"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 5000
+                  },
+                  "website": {
+                    "type": "string",
+                    "description": "Honeypot field; leave empty."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message sent"
+          },
+          "400": {
+            "description": "Invalid form submission"
+          },
+          "503": {
+            "description": "Email delivery unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/certificates/generate": {
       "post": {
         "summary": "Generate a certificate (admin only)",
@@ -4035,6 +4304,7 @@
         "tags": [
           "Certificates"
         ],
+        "security": [],
         "parameters": [
           {
             "in": "path",
@@ -4098,13 +4368,110 @@
         }
       }
     },
-    "/api/v1/auth/register": {
+    "/api/v1/auth/otp/request": {
       "post": {
-        "summary": "Register a new user",
-        "description": "Register a new user with the specified role. If registering as an instructor, the account will require admin approval before accessing instructor features.",
+        "summary": "Send an email OTP for a sensitive account action",
+        "description": "Sends a cryptographically generated four-digit code to the authenticated, verified user's registered email. Codes expire in five minutes and may be requested once per minute.",
         "tags": [
           "Authentication"
         ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "purpose"
+                ],
+                "properties": {
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "password_change",
+                      "account_deactivation"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Verification email queued"
+          },
+          "429": {
+            "description": "OTP request cooldown or email request limit reached"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/otp/verify": {
+      "post": {
+        "summary": "Verify an email OTP and issue a one-time authorization token",
+        "description": "The returned token is bound to the authenticated user and purpose, expires in five minutes, and can authorize only one matching sensitive action.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "purpose",
+                  "otp"
+                ],
+                "properties": {
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "password_change",
+                      "account_deactivation"
+                    ]
+                  },
+                  "otp": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP verified; a one-time authorization token is returned"
+          },
+          "400": {
+            "description": "Invalid, expired, or malformed code"
+          },
+          "429": {
+            "description": "Too many incorrect codes"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "description": "Register a student or instructor as a free-tier account. Email verification is required; instructors also require admin approval. Admin accounts are provisioned separately.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -4115,9 +4482,8 @@
               "example": {
                 "name": "John Doe",
                 "email": "john@example.com",
-                "password": "password123",
-                "role": "student",
-                "tier": "free"
+                "password": "[redacted]",
+                "role": "student"
               }
             }
           }
@@ -4128,18 +4494,19 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/RegistrationResponse"
                 },
                 "example": {
                   "success": true,
-                  "message": "User registered successfully",
-                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "message": "Registration successful. Check your email to verify your account.",
+                  "token": "[redacted]",
                   "user": {
                     "id": 1,
                     "name": "John Doe",
                     "email": "john@example.com",
                     "role": "student",
                     "tier": "free",
+                    "emailVerified": false,
                     "isApproved": true,
                     "createdAt": "2024-01-01T00:00:00.000Z",
                     "updatedAt": "2024-01-01T00:00:00.000Z"
@@ -4175,6 +4542,200 @@
         }
       }
     },
+    "/api/v1/auth/verify-email": {
+      "post": {
+        "summary": "Verify an email address",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified; the user can sign in"
+          },
+          "400": {
+            "description": "Token is invalid or expired"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/resend-verification": {
+      "post": {
+        "summary": "Resend email verification",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Generic response to avoid disclosing account state"
+          },
+          "503": {
+            "description": "Email delivery is not configured or available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/request": {
+      "post": {
+        "summary": "Request a password reset email",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Generic response to avoid disclosing account state"
+          },
+          "503": {
+            "description": "Email delivery is not configured or available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/confirm": {
+      "post": {
+        "summary": "Reset a password using a one-time email token",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "password"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 12
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset; existing JWTs are invalidated"
+          },
+          "400": {
+            "description": "Token is invalid or expired"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/deactivate": {
+      "post": {
+        "summary": "Deactivate the authenticated account",
+        "description": "Requires the current password and a one-time email OTP authorization token for account_deactivation. Records are retained for 30 days, after which an administrator may purge them.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "password",
+                  "otpAuthorization"
+                ],
+                "properties": {
+                  "password": {
+                    "type": "string"
+                  },
+                  "otpAuthorization": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account deactivated and current tokens invalidated"
+          },
+          "401": {
+            "description": "Password is incorrect"
+          },
+          "403": {
+            "description": "Administrator accounts cannot self-deactivate"
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "summary": "Login user",
@@ -4182,6 +4743,7 @@
         "tags": [
           "Authentication"
         ],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -4207,7 +4769,7 @@
                 "example": {
                   "success": true,
                   "message": "Login successful",
-                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "token": "[redacted]",
                   "user": {
                     "id": 1,
                     "name": "John Doe",
@@ -4306,7 +4868,7 @@
     "/api/v1/auth/upgrade-tier": {
       "put": {
         "summary": "Upgrade/downgrade user tier",
-        "description": "Change the user's subscription tier between free and premium.",
+        "description": "Administrators may change their own tier here. Administrators can manage other users' tiers through admin user-management; regular users cannot grant themselves premium access.",
         "tags": [
           "Authentication"
         ],
@@ -4349,7 +4911,7 @@
                 "example": {
                   "success": true,
                   "message": "Tier updated successfully",
-                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "token": "[redacted]",
                   "user": {
                     "id": 1,
                     "name": "John Doe",
