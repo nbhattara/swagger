@@ -108,6 +108,215 @@ main {
     color: var(--text);
   }
 }
+/* ================================
+   SWAGGER UI VISIBILITY FIX
+================================ */
+
+/* Base visibility */
+.swagger-ui {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+
+.swagger-ui * {
+  box-sizing: border-box;
+}
+
+/* General text */
+.swagger-ui .info,
+.swagger-ui .info *,
+.swagger-ui .opblock-tag,
+.swagger-ui .opblock-summary-description,
+.swagger-ui .opblock-description-wrapper,
+.swagger-ui .markdown,
+.swagger-ui .markdown *,
+.swagger-ui .renderedMarkdown,
+.swagger-ui .renderedMarkdown *,
+.swagger-ui label,
+.swagger-ui p,
+.swagger-ui li,
+.swagger-ui td,
+.swagger-ui th,
+.swagger-ui h1,
+.swagger-ui h2,
+.swagger-ui h3,
+.swagger-ui h4,
+.swagger-ui h5,
+.swagger-ui span,
+.swagger-ui small {
+  color: var(--text);
+}
+
+/* Main sections and blocks */
+.swagger-ui .scheme-container,
+.swagger-ui section.models,
+.swagger-ui .models-control,
+.swagger-ui .model-box,
+.swagger-ui .model-container,
+.swagger-ui .opblock-body,
+.swagger-ui .opblock-section-header,
+.swagger-ui .responses-wrapper,
+.swagger-ui .parameters-container {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* API operation blocks */
+.swagger-ui .opblock {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.swagger-ui .opblock .opblock-summary {
+  border-color: var(--border);
+}
+
+.swagger-ui .opblock .opblock-summary-method {
+  color: #ffffff;
+}
+
+/* Tables */
+.swagger-ui table,
+.swagger-ui table tbody tr,
+.swagger-ui table thead tr,
+.swagger-ui table tbody tr td,
+.swagger-ui table thead tr th {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* Inputs and dropdowns */
+.swagger-ui input,
+.swagger-ui select,
+.swagger-ui textarea,
+.swagger-ui .parameters-col_description input,
+.swagger-ui .parameters-col_description select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.swagger-ui input::placeholder,
+.swagger-ui textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* Code and JSON blocks */
+.swagger-ui pre,
+.swagger-ui code,
+.swagger-ui .highlight-code,
+.swagger-ui .microlight,
+.swagger-ui .body-param__text {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* Response blocks */
+.swagger-ui .responses-inner,
+.swagger-ui .response,
+.swagger-ui .response-col_description__inner {
+  color: var(--text);
+}
+
+.swagger-ui .response-control-media-type__accept-controller select {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Buttons */
+.swagger-ui .btn {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.swagger-ui .btn:hover {
+  border-color: var(--accent);
+}
+
+.swagger-ui .btn.execute,
+.swagger-ui .btn.authorize {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* Links */
+.swagger-ui a {
+  color: var(--accent);
+}
+
+.swagger-ui a:hover {
+  opacity: 0.85;
+}
+
+/* Focus accessibility */
+.swagger-ui button:focus-visible,
+.swagger-ui input:focus-visible,
+.swagger-ui select:focus-visible,
+.swagger-ui textarea:focus-visible,
+.site-header__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  .swagger-ui {
+    color: #1c1917;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .swagger-ui .opblock,
+  .swagger-ui .model-box,
+  .swagger-ui .model-container,
+  .swagger-ui .responses-wrapper {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  .swagger-ui .highlight-code,
+  .swagger-ui pre,
+  .swagger-ui code {
+    background: #14161a;
+    color: #e8e6e3;
+  }
+
+  .swagger-ui .btn {
+    color: var(--text);
+  }
+
+  .swagger-ui .btn.execute,
+  .swagger-ui .btn.authorize {
+    color: #14161a;
+  }
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+  main {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .swagger-ui .wrapper {
+    padding: 0;
+  }
+
+  .swagger-ui table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .swagger-ui .opblock-summary {
+    flex-wrap: wrap;
+  }
+}
 
 @media (max-width: 600px) {
   .site-header__inner { padding: 0.75rem 1rem; }
