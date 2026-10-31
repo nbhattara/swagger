@@ -369,6 +369,111 @@
           "updatedAt": "2024-01-01T00:00:00.000Z"
         }
       },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 150,
+            "example": "Learning platform redesign"
+          },
+          "description": {
+            "type": "string",
+            "example": "A project overview and its outcome."
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 80,
+            "example": "Web development"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com/project.jpg"
+          },
+          "projectUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://example.com"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "example": false
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProjectUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 2048
+          },
+          "projectUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            }
+          },
+          "isFeatured": {
+            "type": "boolean"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
       "SubCourse": {
         "type": "object",
         "properties": {
@@ -1224,6 +1329,10 @@
       "description": "Course management endpoints"
     },
     {
+      "name": "Projects",
+      "description": "Published website projects and administrator project management"
+    },
+    {
       "name": "SubCourses",
       "description": "Sub-course management endpoints"
     },
@@ -1270,6 +1379,10 @@
     {
       "name": "Teacher",
       "description": "Teacher dashboard endpoints"
+    },
+    {
+      "name": "Test",
+      "description": "Testing and debugging endpoints"
     }
   ],
   "paths": {
@@ -1466,6 +1579,75 @@
                     },
                     "user": {
                       "$ref": "#/components/schemas/PublicUser"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test/smtp": {
+      "post": {
+        "summary": "Test SMTP configuration",
+        "description": "Sends a test email to verify SMTP configuration is working",
+        "tags": [
+          "Test"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address to send test email to",
+                    "example": "test@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test email sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "SMTP configuration error or email send failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
                     }
                   }
                 }
@@ -2068,6 +2250,294 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "summary": "List published projects",
+        "tags": [
+          "Projects"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Published projects, ordered for the public website",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a project (admin only)",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "description",
+                  "category"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 5000
+                  },
+                  "category": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "imageUrl": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 2048
+                  },
+                  "projectUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true
+                  },
+                  "tags": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 40
+                    }
+                  },
+                  "isFeatured": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "isPublished": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "sortOrder": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/admin": {
+      "get": {
+        "summary": "List all projects (admin only)",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "isPublished",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Projects including drafts"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/admin/{id}": {
+      "get": {
+        "summary": "Get a project including drafts (admin only)",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project retrieved"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "get": {
+        "summary": "Get a published project",
+        "tags": [
+          "Projects"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project retrieved"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a project (admin only)",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project updated"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a project (admin only)",
+        "tags": [
+          "Projects"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project deleted"
+          },
+          "404": {
+            "description": "Project not found"
           }
         }
       }
@@ -3678,6 +4148,7 @@
     "/api/v1/admin/approve-teacher/{teacherId}": {
       "put": {
         "summary": "Approve teacher",
+        "description": "Approves an instructor account and sends an email notification to the instructor via SMTP with approval confirmation and next steps.",
         "tags": [
           "Admin"
         ],
@@ -3698,7 +4169,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Teacher approved successfully",
+            "description": "Teacher approved successfully and email notification sent",
             "content": {
               "application/json": {
                 "schema": {
@@ -3724,6 +4195,7 @@
     "/api/v1/admin/reject-teacher/{teacherId}": {
       "put": {
         "summary": "Reject teacher",
+        "description": "Rejects an instructor account and sends an email notification to the instructor via SMTP with the rejection reason.",
         "tags": [
           "Admin"
         ],
@@ -3750,7 +4222,8 @@
                 "type": "object",
                 "properties": {
                   "reason": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Optional reason for rejection"
                   }
                 }
               }
@@ -3759,7 +4232,7 @@
         },
         "responses": {
           "200": {
-            "description": "Teacher rejected successfully"
+            "description": "Teacher rejected successfully and email notification sent"
           }
         }
       }
@@ -3944,6 +4417,59 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/categories": {
+      "get": {
+        "summary": "Get categories for published courses",
+        "tags": [
+          "Courses"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Distinct published course categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/manage": {
+      "get": {
+        "summary": "List courses managed by the caller",
+        "description": "Instructors see their own courses and administrators see all courses, including drafts.",
+        "tags": [
+          "Courses"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Courses available for management, with enrollment and lesson counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
                 }
               }
             }
@@ -4152,7 +4678,13 @@
                   },
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "format": "email",
+                    "maxLength": 254
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 16,
+                    "description": "Optional callback number."
                   },
                   "subject": {
                     "type": "string",
@@ -4364,6 +4896,102 @@
         "responses": {
           "200": {
             "description": "Certificate revoked successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/oauth/{provider}": {
+      "get": {
+        "summary": "Start provider sign-in",
+        "description": "Redirects to Google, Facebook, or GitHub using a browser-bound state cookie; Google and GitHub also use PKCE.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "google",
+                "facebook",
+                "github"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to the selected identity provider"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/oauth/{provider}/callback": {
+      "get": {
+        "summary": "Complete provider sign-in",
+        "description": "Validates provider state and identity, then redirects to the website with a short-lived, one-time exchange code in the URL fragment.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "google",
+                "facebook",
+                "github"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Redirect to the website sign-in completion page"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/oauth/exchange": {
+      "post": {
+        "summary": "Exchange a one-time OAuth code for a website access token",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access token and user profile"
+          },
+          "400": {
+            "description": "Invalid, expired, or already-used code"
           }
         }
       }
