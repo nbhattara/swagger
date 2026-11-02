@@ -429,6 +429,54 @@
           }
         }
       },
+      "Banner": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "ctaText": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 80
+          },
+          "ctaUrl": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 2048
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ProjectUpdate": {
         "type": "object",
         "properties": {
@@ -1400,6 +1448,10 @@
   ],
   "tags": [
     {
+      "name": "Health",
+      "description": "API and database readiness checks"
+    },
+    {
       "name": "Authentication",
       "description": "User registration and login endpoints"
     },
@@ -1414,6 +1466,10 @@
     {
       "name": "Projects",
       "description": "Published website projects and administrator project management"
+    },
+    {
+      "name": "Banners",
+      "description": "Public promotional banners and administrator banner management"
     },
     {
       "name": "SubCourses",
@@ -7382,6 +7438,222 @@
         }
       }
     },
+    "/api/v1/banners/active": {
+      "get": {
+        "summary": "List active promotional banners",
+        "tags": [
+          "Banners"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Active banners ordered by sort order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Banner"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/banners/admin": {
+      "get": {
+        "summary": "List all promotional banners (admin only)",
+        "tags": [
+          "Banners"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All banners ordered by sort order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Banner"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a promotional banner (admin only)",
+        "tags": [
+          "Banners"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "image"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 5000
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "ctaText": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "ctaUrl": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "sortOrder": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Banner created"
+          },
+          "400": {
+            "description": "Invalid banner fields or missing image"
+          }
+        }
+      }
+    },
+    "/api/v1/banners/admin/{id}": {
+      "put": {
+        "summary": "Update a promotional banner (admin only)",
+        "tags": [
+          "Banners"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 5000
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "ctaText": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "ctaUrl": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "sortOrder": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Banner updated"
+          },
+          "404": {
+            "description": "Banner not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a promotional banner (admin only)",
+        "tags": [
+          "Banners"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Banner deleted"
+          },
+          "404": {
+            "description": "Banner not found"
+          }
+        }
+      }
+    },
     "/api/v1/auth/oauth/{provider}": {
       "get": {
         "summary": "Start provider sign-in",
@@ -8511,6 +8783,23 @@
           },
           "404": {
             "description": "File not found"
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Check API and database health",
+        "tags": [
+          "Health"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API and database are available"
+          },
+          "503": {
+            "description": "Database is unavailable"
           }
         }
       }
