@@ -804,6 +804,31 @@
           }
         }
       },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "Programming"
+          },
+          "title": {
+            "type": "string",
+            "example": "Programming"
+          },
+          "mainCategory": {
+            "type": "string",
+            "example": "Technology"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "QuizQuestion": {
         "type": "object",
         "required": [
@@ -1020,6 +1045,64 @@
           },
           "user": {
             "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "LiveClass": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Live Q&A Session"
+          },
+          "description": {
+            "type": "string",
+            "example": "Weekly live discussion"
+          },
+          "meetingUrl": {
+            "type": "string",
+            "example": "https://zoom.us/j/123456789"
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Post": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Announcement"
+          },
+          "content": {
+            "type": "string",
+            "example": "Post content here"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -1383,6 +1466,30 @@
     {
       "name": "Test",
       "description": "Testing and debugging endpoints"
+    },
+    {
+      "name": "Categories",
+      "description": "Category management endpoints"
+    },
+    {
+      "name": "Content",
+      "description": "Content/Posts management endpoints"
+    },
+    {
+      "name": "LiveClasses",
+      "description": "Live class management endpoints"
+    },
+    {
+      "name": "Exams",
+      "description": "Exam management endpoints"
+    },
+    {
+      "name": "Answers",
+      "description": "Exam answer management endpoints"
+    },
+    {
+      "name": "Bookings",
+      "description": "Booking management endpoints"
     }
   ],
   "paths": {
@@ -2783,6 +2890,321 @@
         }
       }
     },
+    "/api/v1/payment/check/user/{userId}/category/{categoryId}": {
+      "get": {
+        "summary": "Check payment by category (frontend alias)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment check completed"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/category/{categoryId}/payment": {
+      "post": {
+        "summary": "Create payment (frontend alias)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "courseId"
+                ],
+                "properties": {
+                  "courseId": {
+                    "type": "integer"
+                  },
+                  "discountCode": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment created successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/file/upload/{paymentId}": {
+      "post": {
+        "summary": "Upload payment screenshot (frontend alias)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paymentId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/payments": {
+      "get": {
+        "summary": "Get all payments (frontend alias)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "approved",
+                "rejected"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payments retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/approve/{paymentId}": {
+      "put": {
+        "summary": "Approve payment (frontend alias)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paymentId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment approved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/reject/{paymentId}": {
+      "put": {
+        "summary": "Reject payment (frontend alias)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "paymentId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment rejected successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/daily": {
+      "get": {
+        "summary": "Get daily revenue (admin only)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily revenue data retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/weekly": {
+      "get": {
+        "summary": "Get weekly revenue (admin only)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Weekly revenue data retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/monthly/revenue": {
+      "get": {
+        "summary": "Get monthly revenue (admin only) - frontend alias",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Monthly revenue data retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payment/yearly": {
+      "get": {
+        "summary": "Get yearly revenue (admin only)",
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Yearly revenue data retrieved successfully"
+          }
+        }
+      }
+    },
     "/api/v1/notifications": {
       "post": {
         "summary": "Create a notification (admin only)",
@@ -2973,6 +3395,460 @@
         "responses": {
           "201": {
             "description": "Welcome notification sent successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/lives": {
+      "get": {
+        "summary": "Get all live classes",
+        "description": "Returns all live classes as an array. Pagination metadata is returned in X-Total-Count, X-Page, X-Page-Size, and X-Total-Pages headers. Defaults to 20 items and allows at most 100.",
+        "tags": [
+          "Live Classes"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of live classes retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LiveClass"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/category/{categoryId}/lives": {
+      "get": {
+        "summary": "Get live classes by category",
+        "description": "Returns live classes for a specific category with pagination.",
+        "tags": [
+          "Live Classes"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Category name"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of live classes for the category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LiveClass"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lives/user/{userId}": {
+      "get": {
+        "summary": "Get live classes by user",
+        "description": "Returns live classes created by a specific user with pagination.",
+        "tags": [
+          "Live Classes"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of live classes for the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LiveClass"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lives/{id}": {
+      "get": {
+        "summary": "Get live class by ID",
+        "tags": [
+          "Live Classes"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Live Class ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Live class retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveClass"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Live class not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a live class",
+        "tags": [
+          "Live Classes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Live Class ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "scheduledAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "duration": {
+                    "type": "integer"
+                  },
+                  "meetingLink": {
+                    "type": "string"
+                  },
+                  "isRecorded": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Live class updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "liveClass": {
+                      "$ref": "#/components/schemas/LiveClass"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to update this live class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Live class not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/category/{categoryId}/lives": {
+      "post": {
+        "summary": "Create a new live class",
+        "tags": [
+          "Live Classes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Category name"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "scheduledAt"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "scheduledAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "default": 60
+                  },
+                  "meetingLink": {
+                    "type": "string"
+                  },
+                  "isRecorded": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Live class created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "liveClass": {
+                      "$ref": "#/components/schemas/LiveClass"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User or category not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/live/{id}": {
+      "delete": {
+        "summary": "Delete a live class",
+        "tags": [
+          "Live Classes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Live Class ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Live class deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to delete this live class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Live class not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -3299,6 +4175,276 @@
         }
       }
     },
+    "/api/v1/users/email/{email}": {
+      "get": {
+        "summary": "Get a user by email",
+        "tags": [
+          "Users"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public user profile"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/api/v1/users/addRole/email/{email}/role/{role}": {
+      "post": {
+        "summary": "Change a user's role by email",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          {
+            "in": "path",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "student",
+                "instructor",
+                "admin"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role updated"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/api/v1/users/role/{role}": {
+      "get": {
+        "summary": "List users by role",
+        "tags": [
+          "Users"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "student",
+                "instructor",
+                "admin"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching public user profiles"
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userId}/faculties": {
+      "get": {
+        "summary": "Get faculties assigned to a user",
+        "tags": [
+          "Users"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Faculty list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/teachers-and-subscribers": {
+      "get": {
+        "summary": "List instructors and premium subscribers",
+        "tags": [
+          "Users"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Teacher and subscriber lists"
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userId}/faculty": {
+      "put": {
+        "summary": "Assign a faculty to a user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "faculty": {
+                    "type": "string"
+                  },
+                  "facult": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Faculty assignment response"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/api/v1/users/file/upload/{userId}": {
+      "post": {
+        "summary": "Upload a user profile image",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image upload response"
+          }
+        }
+      }
+    },
+    "/api/v1/users/image/{fileName}": {
+      "get": {
+        "summary": "Get a user profile image",
+        "tags": [
+          "Users"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image file"
+          }
+        }
+      }
+    },
     "/api/v1/invoices": {
       "post": {
         "summary": "Create a new invoice",
@@ -3459,6 +4605,346 @@
         "responses": {
           "200": {
             "description": "Invoice PDF downloaded"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/category/{categoryId}/exams": {
+      "post": {
+        "summary": "Create a new exam",
+        "description": "Creates a new exam for a specific user and category",
+        "tags": [
+          "Exams"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Category ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "default": 60
+                  },
+                  "passingScore": {
+                    "type": "integer",
+                    "default": 70
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Exam created successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "User or category not found"
+          }
+        }
+      }
+    },
+    "/api/v1/exams": {
+      "get": {
+        "summary": "Get all exams",
+        "description": "Retrieves all exams in the system",
+        "tags": [
+          "Exams"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "List of exams retrieved successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/exams/user/{userId}/faculty/{faculty}": {
+      "get": {
+        "summary": "Get exams by user and faculty",
+        "description": "Retrieves exams for a specific user and faculty (category)",
+        "tags": [
+          "Exams"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "path",
+            "name": "faculty",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Faculty name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exams retrieved successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/api/v1/exams/{categoryId}": {
+      "get": {
+        "summary": "Get exams by category",
+        "description": "Retrieves all exams for a specific category",
+        "tags": [
+          "Exams"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Category ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exams retrieved successfully"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        }
+      }
+    },
+    "/api/v1/exam/file/upload/{examId}": {
+      "post": {
+        "summary": "Upload exam file",
+        "description": "Uploads a file for a specific exam",
+        "tags": [
+          "Exams"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "examId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Exam ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Exam not found"
+          }
+        }
+      }
+    },
+    "/api/v1/exam/file/{fileName}": {
+      "get": {
+        "summary": "Get exam file",
+        "description": "Retrieves a file by filename",
+        "tags": [
+          "Exams"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "File name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File retrieved successfully"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        }
+      }
+    },
+    "/api/v1/exams/{examId}": {
+      "put": {
+        "summary": "Update exam",
+        "description": "Updates an existing exam",
+        "tags": [
+          "Exams"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "examId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Exam ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "duration": {
+                    "type": "integer"
+                  },
+                  "passingScore": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exam updated successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Exam not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete exam",
+        "description": "Deletes an exam",
+        "tags": [
+          "Exams"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "examId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Exam ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exam deleted successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Exam not found"
           }
         }
       }
@@ -4652,6 +6138,377 @@
         }
       }
     },
+    "/api/v1/user/{userId}/category/{categoryId}/posts": {
+      "post": {
+        "summary": "Create a new post",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Category ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "content"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Post created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "post": {
+                      "$ref": "#/components/schemas/Post"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User or category not found"
+          }
+        }
+      }
+    },
+    "/api/v1/category/{categoryId}": {
+      "get": {
+        "summary": "Get posts by category",
+        "tags": [
+          "Posts"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Category ID"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Posts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Post"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}": {
+      "put": {
+        "summary": "Update a post",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Post ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "post": {
+                      "$ref": "#/components/schemas/Post"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to update this post"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a post",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Post ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to delete this post"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get post by ID",
+        "tags": [
+          "Posts"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Post ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    },
+    "/api/v1/post/file/upload/{id}": {
+      "post": {
+        "summary": "Upload post file/image",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Post ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "post": {
+                      "$ref": "#/components/schemas/Post"
+                    },
+                    "imageUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - not authorized to upload to this post"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    },
+    "/api/v1/post/image/{fileName}": {
+      "get": {
+        "summary": "Get post image",
+        "tags": [
+          "Posts"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "File name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image retrieved successfully",
+            "content": "image/*"
+          }
+        }
+      }
+    },
     "/api/v1/contact": {
       "post": {
         "summary": "Send a website contact message",
@@ -4896,6 +6753,631 @@
         "responses": {
           "200": {
             "description": "Certificate revoked successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/categories": {
+      "get": {
+        "summary": "List categories",
+        "tags": [
+          "Categories"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Categories returned as an array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a category",
+        "tags": [
+          "Categories"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "mainCategory": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/latest": {
+      "get": {
+        "summary": "List recently used categories",
+        "tags": [
+          "Categories"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Latest categories returned as an array"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/{id}": {
+      "get": {
+        "summary": "Get a category by ID or title",
+        "tags": [
+          "Categories"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category returned"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a category",
+        "tags": [
+          "Categories"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "mainCategory": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a category",
+        "tags": [
+          "Categories"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category deleted"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/search/title/{title}": {
+      "get": {
+        "summary": "Search categories by title",
+        "tags": [
+          "Categories"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "title",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching categories returned as an array"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/search/main/{mainCategory}": {
+      "get": {
+        "summary": "Search categories by main category",
+        "tags": [
+          "Categories"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mainCategory",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching categories returned as an array"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/search/{keyword}": {
+      "get": {
+        "summary": "Search categories by keyword",
+        "tags": [
+          "Categories"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "keyword",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching categories returned as an array"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/file/upload/{id}": {
+      "post": {
+        "summary": "Upload a category image",
+        "tags": [
+          "Categories"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image upload response"
+          }
+        }
+      }
+    },
+    "/api/v1/categories/image/{fileName}": {
+      "get": {
+        "summary": "Get a category image",
+        "tags": [
+          "Categories"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image file"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/category/{categoryId}/bookeds": {
+      "post": {
+        "summary": "Create a booking for a user in a category",
+        "tags": [
+          "Bookings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Category ID (category name)"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "booking": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Already booked or validation error"
+          },
+          "403": {
+            "description": "Payment required or tier limit reached"
+          },
+          "404": {
+            "description": "Category/course not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookeds": {
+      "get": {
+        "summary": "Get all bookings (admin only)",
+        "tags": [
+          "Bookings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all bookings retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "bookings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not authorized (admin only)"
+          }
+        }
+      }
+    },
+    "/api/v1/booked/user/{userId}": {
+      "get": {
+        "summary": "Get bookings by user ID",
+        "tags": [
+          "Bookings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User bookings retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "bookings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not authorized"
+          }
+        }
+      }
+    },
+    "/api/v1/check/user/{userId}/category/{categoryId}": {
+      "get": {
+        "summary": "Check booking status for a user and category",
+        "tags": [
+          "Bookings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          },
+          {
+            "in": "path",
+            "name": "categoryId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Category ID (category name)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "isBooked": {
+                      "type": "boolean"
+                    },
+                    "booking": {
+                      "type": "object"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Category/course not found"
+          }
+        }
+      }
+    },
+    "/api/v1/bookeds/{id}": {
+      "put": {
+        "summary": "Update booking status",
+        "tags": [
+          "Bookings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "completed",
+                      "dropped"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Booking updated successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Booking not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a booking",
+        "tags": [
+          "Bookings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking deleted successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Booking not found"
           }
         }
       }
@@ -5577,6 +8059,458 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/get-phone-number": {
+      "post": {
+        "summary": "Request a phone OTP (legacy frontend endpoint)",
+        "description": "Requests account verification for the submitted email. The current backend sends verification through email.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Request accepted"
+          },
+          "400": {
+            "description": "Invalid email"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/update-password": {
+      "post": {
+        "summary": "Change the authenticated user's password",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 12
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated"
+          },
+          "401": {
+            "description": "Current password is incorrect"
+          },
+          "422": {
+            "description": "Invalid password"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/forgetpw": {
+      "post": {
+        "summary": "Request a password reset (legacy frontend endpoint)",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Request accepted"
+          },
+          "400": {
+            "description": "Invalid email"
+          }
+        }
+      }
+    },
+    "/api/v1/exam/{examId}/answers": {
+      "get": {
+        "summary": "Get answers by exam",
+        "description": "Retrieves all answers submitted for a specific exam",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "examId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Exam ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Answers retrieved successfully"
+          },
+          "404": {
+            "description": "Exam not found"
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit exam answers",
+        "description": "Creates a new answer submission for an exam",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "examId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Exam ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "answers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "fileUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Answer submitted successfully"
+          },
+          "400": {
+            "description": "Already submitted for this exam"
+          },
+          "404": {
+            "description": "Exam not found"
+          }
+        }
+      }
+    },
+    "/api/v1/answers/{answerId}": {
+      "get": {
+        "summary": "Get answer by ID",
+        "description": "Retrieves a specific answer by its ID",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answerId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Answer ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Answer retrieved successfully"
+          },
+          "404": {
+            "description": "Answer not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update answer",
+        "description": "Updates an existing answer. Only the answer owner or admin can update.",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answerId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Answer ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "answers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "fileUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answer updated successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Answer not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete answer",
+        "description": "Deletes an answer. Only the answer owner or admin can delete.",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answerId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Answer ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Answer deleted successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Answer not found"
+          }
+        }
+      }
+    },
+    "/api/v1/answer/{answerId}/score": {
+      "put": {
+        "summary": "Set answer score",
+        "description": "Updates the score for a specific answer. Only the exam creator or admin can set scores.",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answerId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Answer ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Score updated successfully"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Answer not found"
+          }
+        }
+      }
+    },
+    "/api/v1/exam/{examId}/user/{userId}/score": {
+      "get": {
+        "summary": "Get score for user",
+        "description": "Retrieves the score for a specific user on a specific exam",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "examId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Exam ID"
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Score retrieved successfully"
+          },
+          "404": {
+            "description": "Exam, user, or answer not found"
+          }
+        }
+      }
+    },
+    "/api/v1/answer/file/{fileName}": {
+      "get": {
+        "summary": "Get answer file",
+        "description": "Retrieves a file by filename",
+        "tags": [
+          "Answers"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "File name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File retrieved successfully"
+          },
+          "404": {
+            "description": "File not found"
           }
         }
       }
