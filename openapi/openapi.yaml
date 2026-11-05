@@ -3,36 +3,31 @@
   "info": {
     "title": "E-Learning Platform API",
     "version": "1.0.0",
-    "description": "A comprehensive e-learning platform backend with course management, enrollment, assessment, and payment features. This API supports multiple user roles including students, instructors, and administrators.",
+    "description": "\n# E-Learning Platform Backend API\n\nA comprehensive e-learning platform backend providing course management, enrollment, assessment, and payment features.\n\n## Features\n\n- **Multi-Role Support**: Students, Instructors, and Administrators\n- **Course Management**: Create, update, and publish courses with lessons and quizzes\n- **Enrollment System**: Student enrollment with progress tracking\n- **Payment Processing**: Secure payment workflow with approval system\n- **Assessment Tools**: Quizzes, exams, and answer submissions\n- **Live Classes**: Scheduled live sessions with meeting links\n- **Content Management**: Posts, announcements, and multimedia support\n- **Notifications**: Real-time user notifications\n- **Certificates**: Auto-generated completion certificates\n\n## Authentication\n\nThis API uses JWT (JSON Web Token) authentication. Most endpoints require a valid JWT token in the Authorization header:\n\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\n### Getting a Token\n\n1. **Register**: POST `/api/v1/auth/register`\n2. **Login**: POST `/api/v1/auth/login`\n3. **OAuth**: GET `/api/v1/auth/oauth/{provider}` (Google, Facebook, GitHub)\n\n## Rate Limiting\n\nAPI endpoints are rate-limited to prevent abuse:\n- Auth endpoints: 5 requests per 15 minutes\n- General endpoints: 100 requests per 15 minutes\n- Email actions: 3 requests per hour\n\n## Error Responses\n\nAll errors follow this format:\n\n```json\n{\n  \"success\": false,\n  \"message\": \"Error description\",\n  \"error\": \"Detailed error message (development only)\"\n}\n```\n\nCommon HTTP status codes:\n- `200` - Success\n- `201` - Created\n- `400` - Bad Request (validation error)\n- `401` - Unauthorized (invalid or missing token)\n- `403` - Forbidden (insufficient permissions)\n- `404` - Not Found\n- `429` - Too Many Requests (rate limit exceeded)\n- `500` - Internal Server Error\n      ",
     "contact": {
-      "name": "API Support",
-      "email": "support@elearning.com",
-      "url": "https://elearning.com/support"
+      "name": "Development Team",
+      "email": "dev-team@utkristashikshya.com"
     },
     "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
-    },
-    "termsOfService": "https://elearning.com/terms"
+      "name": "Proprietary"
+    }
   },
   "servers": [
     {
       "url": "http://localhost:5000",
-      "description": "Development server"
+      "description": "Local Development"
     },
     {
-      "url": "https://api.elearning.com",
-      "description": "Production server"
-    },
-    {
-      "url": "https://staging-api.elearning.com",
-      "description": "Staging server"
+      "url": "http://{your-server}:5000",
+      "description": "Development Server (replace {your-server} with your IP)",
+      "variables": {
+        "your-server": {
+          "default": "localhost",
+          "description": "Your development server IP or hostname"
+        }
+      }
     }
   ],
-  "externalDocs": {
-    "description": "Find out more about our API documentation",
-    "url": "https://elearning.com/docs"
-  },
   "components": {
     "securitySchemes": {
       "bearerAuth": {
@@ -3261,6 +3256,30 @@
         }
       }
     },
+    "/api/v1/payment/image/{fileName}": {
+      "get": {
+        "summary": "Get payment image",
+        "tags": [
+          "Payments"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image retrieved successfully"
+          }
+        }
+      }
+    },
     "/api/v1/notifications": {
       "post": {
         "summary": "Create a notification (admin only)",
@@ -4710,6 +4729,31 @@
                   "description": {
                     "type": "string"
                   },
+                  "examType": {
+                    "type": "string",
+                    "enum": [
+                      "EXAM",
+                      "TEST",
+                      "ASSIGNMENT"
+                    ]
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "deadline": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  },
+                  "maxScore": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
                   "questions": {
                     "type": "array",
                     "items": {
@@ -4802,7 +4846,11 @@
         "tags": [
           "Exams"
         ],
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -4883,7 +4931,11 @@
         "tags": [
           "Exams"
         ],
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -4940,6 +4992,33 @@
                   },
                   "description": {
                     "type": "string"
+                  },
+                  "examType": {
+                    "type": "string",
+                    "enum": [
+                      "EXAM",
+                      "TEST",
+                      "ASSIGNMENT"
+                    ]
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  },
+                  "deadline": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  },
+                  "maxScore": {
+                    "type": "integer",
+                    "minimum": 1
                   },
                   "questions": {
                     "type": "array",
@@ -6278,7 +6357,11 @@
         "tags": [
           "Posts"
         ],
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -8543,6 +8626,37 @@
         }
       }
     },
+    "/api/v1/answer/{examId}/my-answer": {
+      "get": {
+        "summary": "Get the current student's submission",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "examId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Submission or null when the student has not submitted"
+          },
+          "403": {
+            "description": "Student is not enrolled in the course"
+          }
+        }
+      }
+    },
     "/api/v1/answers/{answerId}": {
       "get": {
         "summary": "Get answer by ID",
@@ -8765,7 +8879,11 @@
         "tags": [
           "Answers"
         ],
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -8783,6 +8901,56 @@
           },
           "404": {
             "description": "File not found"
+          }
+        }
+      }
+    },
+    "/api/v1/answer/file/upload/{answerId}": {
+      "post": {
+        "summary": "Attach a document to a student submission",
+        "tags": [
+          "Answers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answerId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File attached successfully"
+          },
+          "403": {
+            "description": "Only the submitting student may attach a file"
           }
         }
       }
